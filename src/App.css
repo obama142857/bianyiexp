@@ -32,7 +32,148 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
+}
+
+@font-face {
+  font-family: 'MyCustomFont';
+  src: url('../public/fonts/winterstorm-k74lw.ttf');
+}
+
+.record-tool {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+
+.wenfa {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  font-family: MyCustomFont;
+
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.word {
+  padding: 0.5em;
+  margin: 0.0em;
+  border: 1px solid #ffffff;
+  cursor: pointer;
+  font-size: 1.5em;
+}
+
+.first-cluster {
+  margin-right: 50px;
+  font-size: 1.2em;
+  font-family: MyCustomFont;
+}
+
+.option-board {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.button-style {
+  padding: 5px 10px;
+  font-size: 1.0em;
+  background-color: #ffffff;
+  color: #c2baba;
+  border: 1px solid #ffffff;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, border 0.3s ease, color 0.3s ease;
+
+  font-family: Tahoma, sans-serif;
+
+  &:hover {
+    background-color: #b3ffff;
+    border: 1px solid #b3ffff;
+    color: #333;
+  }
+
+  &:active {
+    background-color: #00ffff;
+  }
+}
+
+
+/* MyTable.css */
+
+.my-table {
+  border-collapse: collapse;
+  /* 合并单元格边框 */
+  width: 100%;
+  font-family: MyCustomFont;
+}
+
+.my-table th,
+.my-table td {
+  border: 1px solid #ddd;
+  /* 设置单元格边框样式 */
+  padding: 8px;
+  /* 设置单元格内边距 */
+
+  text-align: center;
+}
+
+.my-table th {
+  background-color: #f2f2f2;
+  /* 设置表头背景颜色 */
+}
+
+.add-button-style {
+  padding: 5px 10px;
+  font-size: 1.0em;
+  background-color: #ffffff;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, border 0.3s ease, color 0.3s ease;
+  font-family: Tahoma, sans-serif;
+
+  &:hover {
+    background-color: #b3ffff;
+
+  }
+
+  &:active {
+    background-color: #00ffff;
+  }
+}
+
+.clear-button-style {
+  padding: 5px 10px;
+  font-size: 1.0em;
+  background-color: #ffffff;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, border 0.3s ease, color 0.3s ease;
+  font-family: Tahoma, sans-serif;
+
+  &:hover {
+    background-color: red;
+    border: 1px solid #ff4d4d;
+    color: #ffffff;
+  }
+
+  &:active {
+    background-color: #fd8c8a;
+  }
+}
+
+.Output-board {
+  display: flex;
 }
