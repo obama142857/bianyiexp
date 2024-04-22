@@ -184,24 +184,6 @@ function startlexicalanalysis(code, addsign, setchartable, setstringtable) {
   const stringtable = [];
 
   function addData(name, kind, value) {
-    let kind2 = '';
-    switch (kind) {
-      case 1:
-        kind = 'KEYWORD';
-        break;
-      case 2:
-        kind = 'IDENTIFIER';
-        break;
-      case 3:
-        kind = 'CONSTANT';
-        break;
-      case 4:
-        kind = 'OPERATOR';
-        break;
-      case 5:
-        kind = 'DELIMITER';
-        break;
-    }
     predata.push({ name, kind, value });
   }
 
@@ -224,13 +206,19 @@ function startlexicalanalysis(code, addsign, setchartable, setstringtable) {
 
   function addid(s) {
     if (chartable.has(s)) {
+      if (chartable.get(s).kind === "KEYWORD")
+        addData(s, s, '-');
+      else
+        addData(s, "id", s);
       //addData(s, chartable.get(s).kind, chartable.get(s).value);
     } else {
-      addData(s, 2, s);//add to token           
+      addData(s, "id", s);//add to token           
+
       chartable.set(s, { kind: "-", value: "-", type: "-", namestart: stringtable.length, namelen: s.length, addr: "-" });//add to signtable
+
       s.split('').forEach((item) => {
         stringtable.push(item);
-      });
+      });//字符串表
     }
   }
 
@@ -268,12 +256,12 @@ function startlexicalanalysis(code, addsign, setchartable, setstringtable) {
         value = value * 10 + code.charCodeAt(pointer) - 48;
         pointer++;
         if (pointer >= code.length) {
-          addData(value, "CONSTANT", value);
+          addData(value, "digits", value);
           finalprocess();
           return;
         }
       }
-      addData(value, "CONSTANT", value);
+      addData(value, "digits", value);
       continue;
     }
 
@@ -295,7 +283,7 @@ function startlexicalanalysis(code, addsign, setchartable, setstringtable) {
 
     //dilimiters
     if (ifdelimiter(code[pointer])) {
-      addData(code[pointer], "DELIMITER", code[pointer]);
+      addData(code[pointer], code[pointer], "-");
       pointer++;
       if (pointer >= code.length) {
         finalprocess();
@@ -311,7 +299,7 @@ function startlexicalanalysis(code, addsign, setchartable, setstringtable) {
       switch (state) {
         case 0:
           if (code[pointer] == '+') {
-            addData("+", "OPERATOR", "+");
+            addData("+", "+", "-");
             pointer++;
             if (pointer >= code.length) {
               finalprocess();
@@ -322,7 +310,7 @@ function startlexicalanalysis(code, addsign, setchartable, setstringtable) {
           }
 
           if (code[pointer] == '-') {
-            addData("-", "OPERATOR", "-");
+            addData("-", "-", "-");
             pointer++;
             if (pointer >= code.length) {
               finalprocess();
@@ -333,7 +321,7 @@ function startlexicalanalysis(code, addsign, setchartable, setstringtable) {
           }
 
           if (code[pointer] == '*') {
-            addData("*", "OPERATOR", "*");
+            addData("*", "*", "-");
             pointer++;
             if (pointer >= code.length) {
               finalprocess();
@@ -344,7 +332,7 @@ function startlexicalanalysis(code, addsign, setchartable, setstringtable) {
           }
 
           if (code[pointer] == '/') {
-            addData("/", "OPERATOR", "/");
+            addData("/", "/", "-");
             pointer++;
             if (pointer >= code.length) {
               finalprocess();
@@ -358,7 +346,7 @@ function startlexicalanalysis(code, addsign, setchartable, setstringtable) {
             state = 1;
             pointer++;
             if (pointer >= code.length) {
-              addData("<", "OPERATOR", "<");
+              addData("<", "<", "-");
               finalprocess();
               return;
             }
@@ -369,7 +357,7 @@ function startlexicalanalysis(code, addsign, setchartable, setstringtable) {
             state = 7;
             pointer++;
             if (pointer >= code.length) {
-              addData(">", "OPERATOR", ">");
+              addData(">", ">", "-");
               finalprocess();
               return;
             }
@@ -380,7 +368,7 @@ function startlexicalanalysis(code, addsign, setchartable, setstringtable) {
             state = 4;
             pointer++;
             if (pointer >= code.length) {
-              addData(">", "OPERATOR", ">");
+              addData("=", "=", "-");
               finalprocess();
               return;
             }
@@ -395,7 +383,7 @@ function startlexicalanalysis(code, addsign, setchartable, setstringtable) {
             state = 2;
             pointer++;
             if (pointer >= code.length) {
-              addData("<=", "OPERATOR", "<=");
+              addData("<=", "<=", "-");
               finalprocess();
               return;
             }
@@ -406,11 +394,11 @@ function startlexicalanalysis(code, addsign, setchartable, setstringtable) {
             break;
           }
         case 2:
-          addData("<=", "OPERATOR", "<=");
+          addData("<=", "<=", "-");
           flag = false;
           break;
         case 3:
-          addData("<", "OPERATOR", "<");
+          addData("<", "<", "-");
           flag = false;
           break;
         case 4:
@@ -418,7 +406,7 @@ function startlexicalanalysis(code, addsign, setchartable, setstringtable) {
             state = 5;
             pointer++;
             if (pointer >= code.length) {
-              addData("==", "OPERATOR", "==");
+              addData("==", "==", "-");
               finalprocess();
               return;
             }
@@ -429,11 +417,11 @@ function startlexicalanalysis(code, addsign, setchartable, setstringtable) {
             break;
           }
         case 5:
-          addData("==", "OPERATOR", "==");
+          addData("==", "==", "-");
           flag = false;
           break;
         case 6:
-          addData("=", "OPERATOR", "=");
+          addData("=", "=", "-");
           flag = false;
           break;
         case 7:
@@ -441,7 +429,7 @@ function startlexicalanalysis(code, addsign, setchartable, setstringtable) {
             state = 8;
             pointer++;
             if (pointer >= code.length) {
-              addData(">=", "OPERATOR", ">=");
+              addData(">=", ">=", "-");
               finalprocess();
               return;
             }
@@ -453,11 +441,11 @@ function startlexicalanalysis(code, addsign, setchartable, setstringtable) {
             break;
           }
         case 8:
-          addData(">=", "OPERATOR", ">=");
+          addData(">=", ">=", "-");
           flag = false;
           break;
         case 9:
-          addData(">", "OPERATOR", ">");
+          addData(">", ">", "-");
           flag = false;
           break;
         case 100:
@@ -484,13 +472,209 @@ function download(mytext) {
   URL.revokeObjectURL(url);
 }
 
-export function App1({testtext}) {
-  const [code, setcode] = useState("");
-  const [signtable, settable] = useState([]);
-  const [tokentext, settokentext] = useState("");
-  const [chartable, setchartable] = useState(new Map());
-  const [stringtable, setstringtable] = useState([]);
+function WordtoLetterArray(word) {
+  const keyword = new Set(['int', 'float', 'while', 'else', 'if', '==', '<=', '>=', 'id', 'digits']);
+  const tempArray = [];
+  let flag = true;
+  for (let i = 0; i < word.length; i++) {
+    flag = true;
+    for (let j = 1; j < word.length + 1 - i; j++) {
+      if (keyword.has(word.substr(i, j))) {
+        tempArray.push(word.substr(i, j));
+        i += j - 1;
+        flag = false;
+        break;
+      }
+    }
+    if (flag)
+      tempArray.push(word[i]);
+  }
 
+  let count = 0;
+  for (let i = tempArray.length - 1; i >= 0; i--) {
+    if (tempArray[i] === '\'')
+      count++;
+    else if (count > 0) {
+      while (count > 0) {
+        tempArray[i] = tempArray[i] + '\'';
+        count--;
+      }
+    }
+  }
+
+  const filteredArray = tempArray.filter(item => item !== '\'');
+  return filteredArray;
+}
+
+function GrammarResultShowTable({ grammarresult, producerset }) {
+
+  function showactiontext(item) {
+    if (item.action === 1) {
+      return "移入到" + item.val;
+    }
+    if (item.action === 2) {
+      let index = 0;
+      let result = "";
+      producerset.forEach((value, key) => {
+        value.forEach((value2) => {
+          if (index === item.val) {
+            result = "按照" + key + "->" + value2 + "规约";
+          }
+          index++;
+        });
+      });
+      return result;
+    }
+    if (item.action === 3) {
+      return "Goto到" + item.val;
+    }
+    if (item.action === 4) {
+      return "接受";
+    }
+    return "hnnn";
+  }
+
+  return (
+    <TableContainer component={Paper}>
+      <Table aria-label="simple table">
+        <TableHead>
+          <TableRow>
+            <TableCell>栈</TableCell>
+            <TableCell>符号</TableCell>
+            <TableCell>输入</TableCell>
+            <TableCell>动作</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {grammarresult.map((item) => (
+            <TableRow key={item.stack}>
+              <TableCell component="th" scope="row">
+                {item.stack}
+              </TableCell>
+              <TableCell>{item.sign}</TableCell>
+              <TableCell>{item.input}</TableCell>
+              <TableCell>{showactiontext(item)}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+}
+
+function grammar(LRrows, producerset, symboltonumber, signtable) {
+
+
+  if(signtable.length===0)
+    return [];
+  const result = [];
+  //栈state
+  let stack = [{ state: 0, sign: "$" }];
+  let stacksize = 1;
+
+  //输入串
+  const input = [];
+  signtable.forEach((item) => {
+    input.push(item.kind);
+  });
+  input.push("$");
+  let nextinput = 0;
+
+
+  //移入到状态STATE
+  function shift(state) {
+    //记录
+    result.push({ stack: stack.map((item) => item.state).join(' '), sign: stack.map((item) => item.sign).join(' '), input: input.slice(nextinput).join(' '), action: 1, val: state });
+    //执行
+    stack.push({ state: state, sign: input[nextinput] });
+    nextinput++;
+    stacksize++;
+  }
+  //查看分析表
+  //语法分析结果,1:shift 2:reduce 3:goto 4:accept
+  function searchtable(state, sign) {
+    const s = LRrows[state][symboltonumber.get(sign)].text;
+    if (s==='')
+      return { action: 4, value: 0 };
+    const result2 = { action: 0, value: 0 };
+    if (s[0] === 's') {
+      result2.action = 1;
+      result2.value = parseInt(s.substr(1));
+    }
+    else if (s[0] === 'r') {
+      result2.action = 2;
+      result2.value = parseInt(s.substr(1));
+    }
+    else if (s[0] === 'a') {
+      result2.action = 4;
+      result2.value = 0;
+    }
+    else {
+      result2.action = 3;
+      result2.value = parseInt(s.substr(1));
+    }
+    return result2;
+  }
+  
+
+
+  //规约
+  function reduce(val) {
+    //记录
+    result.push({ stack: stack.map((item) => item.state).join(' '), sign: stack.map((item) => item.sign).join(' '), input: input.slice(nextinput).join(' '), action: 2, val: val });
+    
+    let word="";
+    let start="";
+    let index = 0;
+    producerset.forEach((value, key) => {
+      value.forEach((value2) => {
+        if (index === val) {
+          start = key;
+          word = value2;
+        }
+        index++;
+      });
+    });
+
+    if(word==="ε")
+    {
+      stack.push({ state: LRrows[stack[stacksize - 1].state][symboltonumber.get(start)].text, sign: start });
+      stacksize++;
+      return;
+    }
+
+    const wordArray = WordtoLetterArray(word);
+    stack = stack.slice(0, stacksize - wordArray.length);
+    stacksize = stack.length;
+    stack.push({ state: LRrows[stack[stacksize - 1].state][symboltonumber.get(start)].text, sign: start });
+    stacksize++;
+  }
+
+  while (true) {
+    const action = searchtable(stack[stacksize - 1].state, input[nextinput]);
+    if (action.action === 1) {
+      shift(action.value);
+    }
+    else if (action.action === 2) {
+      reduce(action.value);
+    }
+
+    else if (action.action === 4) {
+      result.push({ stack: stack.map((item) => item.state).join(' '), sign: stack.map((item) => item.sign).join(' '), input: input.slice(nextinput).join(' '), action: 4, val: 0 });
+      return result;
+    }
+
+  }
+}
+
+
+export function App1({ LRrows, producerset, symboltonumber }) {
+  const [code, setcode] = useState("");
+  const [signtable, settable] = useState([]);//token序列[{kind,value}]
+  const [tokentext, settokentext] = useState("");//token文本
+  const [chartable, setchartable] = useState(new Map());//符号表
+  const [stringtable, setstringtable] = useState([]);
+  const [grammarresult, setgrammarresult] = useState([{ stack: "0", sign: "$", input: "id*id", action: 1, val: 5 }, { stack: "0", sign: "$id", input: "*id", action: 2, val: 1 }]);//语法分析结果,1:shift 2:reduce 3:goto 4:accept
   const [open, setOpen] = React.useState(false);
 
   const handleClickOpen = () => {
@@ -502,19 +686,21 @@ export function App1({testtext}) {
   };
 
 
+
+
   function button1click() {
     startlexicalanalysis(code, settable, setchartable, setstringtable);
   }
   function button2click() {
     download(tokentext);
   }
-
-
+  function grammarclick() {
+    setgrammarresult(grammar(LRrows, producerset, symboltonumber, signtable));
+  }
 
   return (
     <div>
       <div className="myboard">
-        {testtext}
         <h1>词法分析</h1>
         <div className="board-shower">
           <CodeInputer code={code} setcode={setcode} />
@@ -539,6 +725,10 @@ export function App1({testtext}) {
       <StringTableShower open={open} onClose={handleClose} stringtable={stringtable} />
       <div className="myboard">
         <h1>语法分析</h1>
+        <GrammarResultShowTable grammarresult={grammarresult} producerset={producerset} />
+        <button className="button1" onClick={() => grammarclick()}>
+          语法分析
+        </button>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import logo from './logo.svg';
 import './App.css';
-import  {App1} from './sc';
+import { App1 } from './sc';
 import * as React from 'react';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -246,9 +246,9 @@ function StateShower({ LR0State, LRmod }) {
       }
       else {
         if (LRmod === 3)
-          tempdata.children.push({ id: `I${index}W${item.word}P${item.pos}E${item.expect}`, label: `${item.start}→${WordtoLetterArray(item.word).slice(0,item.pos).join("")} · ${WordtoLetterArray(item.word).slice(item.pos).join("")},${item.expect}` });
+          tempdata.children.push({ id: `I${index}W${item.word}P${item.pos}E${item.expect}`, label: `${item.start}→${WordtoLetterArray(item.word).slice(0, item.pos).join("")} · ${WordtoLetterArray(item.word).slice(item.pos).join("")},${item.expect}` });
         else
-          tempdata.children.push({ id: `I${index}P${item.word}E${item.pos}`, label: `${item.start}→${WordtoLetterArray(item.word).slice(0,item.pos).join("")} · ${WordtoLetterArray(item.word).slice(item.pos).join("")}` });
+          tempdata.children.push({ id: `I${index}P${item.word}E${item.pos}`, label: `${item.start}→${WordtoLetterArray(item.word).slice(0, item.pos).join("")} · ${WordtoLetterArray(item.word).slice(item.pos).join("")}` });
 
       }
     });
@@ -512,7 +512,26 @@ function getSelectedValue(name) {
 }
 
 function WordtoLetterArray(word) {
-  const tempArray = Array.from(word);
+  const keyword = new Set(['int', 'float', 'while', 'else', 'if', '==', '<=', '>=', 'id', 'digits']);
+
+  const tempArray = [];
+
+  let flag = true;
+  for (let i = 0; i < word.length; i++) {
+    flag = true;
+    for (let j = 1; j < word.length + 1 - i; j++) {
+      if (keyword.has(word.substr(i, j))) {
+        tempArray.push(word.substr(i, j));
+        i += j - 1;
+        flag = false;
+        break;
+      }
+
+
+    }
+    if (flag)
+      tempArray.push(word[i]);
+  }
 
   let count = 0;
   for (let i = tempArray.length - 1; i >= 0; i--) {
@@ -528,8 +547,10 @@ function WordtoLetterArray(word) {
 
   const filteredArray = tempArray.filter(item => item !== '\'');
 
+
   return filteredArray;
 }
+
 
 function CaculateFirst(ClusterData, myMap) {
   ClusterData.map((production, index) => {
@@ -714,10 +735,11 @@ function CaculateSelect(FirstCluster, FollowCluster, WenfaData, SelectCluster) {
   });
 }
 
-function ShowLR0Table({ setLRmod, tabledata, ProducerSet, LR0State, LRmod }) {
+function ShowLR0Table({ setLRmod, tabledata, ProducerSet, LR0State, LRmod, rows, setrows, setSymboltonumer }) {
   // 示例数据
   const headers = ['State',];
-  const rows = [];
+
+
   const symbolset = new Set();//终结符集合
   ProducerSet.forEach((value, key) => {
     value.forEach((value2) => {
@@ -747,24 +769,56 @@ function ShowLR0Table({ setLRmod, tabledata, ProducerSet, LR0State, LRmod }) {
     index++;
   });
 
-  for (let i = 0; i < LR0State.length; i++) {
-    const temp = [];
-    temp.push(i.toString());
-    for (let j = 1; j < index; j++) {
-      temp.push('');
+  const symbolmap2 = new Map();
+  symbolmap.forEach((value, key) => {
+    symbolmap2.set(value, key);
+  });
+
+
+
+  let flag = false;
+
+  function caculateRows() {
+    flag = false;
+    const rows2 = [];
+    for (let i = 0; i < LR0State.length; i++) {
+      const temp = [];
+      temp.push({ text: i.toString(), i: i, j: 0 });
+      for (let j = 1; j < index; j++) {
+        temp.push({ text: '', x: i, y: j });
+      }
+      rows2.push(temp);
     }
-    rows.push(temp);
+    tabledata.forEach((value) => {
+      rows2[parseInt(value[0])][parseInt(symbolmap.get(value[1]))].text = rows2[parseInt(value[0])][parseInt(symbolmap.get(value[1]))].text + value[2];
+    });
+    setrows(rows2);
+    setSymboltonumer(symbolmap);
   }
 
-  tabledata.forEach((value) => {
-    rows[parseInt(value[0])][parseInt(symbolmap.get(value[1]))] = rows[parseInt(value[0])][parseInt(symbolmap.get(value[1]))] + value[2];
-  });
+
+  function handleClickOpen(x, y) {
+    const newContent = prompt('Enter new content:', rows[x][y].text);
+    if (newContent == null)
+      return;
+    const rows2 = [];
+    for (let i = 0; i < LR0State.length; i++) {
+      const temp = [];
+      for (let j = 0; j < index; j++) {
+        temp.push(rows[i][j]);
+      }
+      rows2.push(temp);
+    }
+    rows2[x][y].text = newContent;
+    setrows(rows2);
+  }
 
 
   // 生成表格头部
   const tableHeaders = headers.map((header, index) => (
     <th key={index}>{header}</th>
   ));
+
 
   function ifwrong(mydata) {
     let count = 0;
@@ -773,17 +827,21 @@ function ShowLR0Table({ setLRmod, tabledata, ProducerSet, LR0State, LRmod }) {
         count++;
       }
     });
+    if (count > 1)
+      flag = true;
     return count > 1;
   }
   // 生成表格行
+
   const tableRows = rows.map((rowData, rowIndex) => (
     <tr key={rowIndex}>
       {rowData.map((cellData, cellIndex) => (
-        <td key={cellIndex} style={{ backgroundColor: ifwrong(cellData) ? '#ff6666' : 'white' }}>{cellData} </td>
+        <td onClick={() => handleClickOpen(cellData.x, cellData.y)} key={cellIndex} style={{ backgroundColor: ifwrong(cellData.text) ? '#ff6666' : 'white' }}>{<span >
+          {cellData.text}
+        </span>} </td>
       ))}
     </tr>
   ));
-
 
 
   function handleclick(i) {
@@ -800,14 +858,20 @@ function ShowLR0Table({ setLRmod, tabledata, ProducerSet, LR0State, LRmod }) {
           <Button variant={LRmod === 1 ? "contained" : "outlined"} onClick={() => handleclick(1)}>LR(0) </Button>
           <Button variant={LRmod === 2 ? "contained" : "outlined"} onClick={() => handleclick(2)}>SLR(1)</Button>
           <Button variant={LRmod === 3 ? "contained" : "outlined"} onClick={() => handleclick(3)}>LR(1)</Button>
+
         </ButtonGroup>
+        <Tooltip title="计算分析表" placement="right">
+          <button className="add-button-style" onClick={caculateRows}>计算</button>
+        </Tooltip>
       </div>
+      {flag ? <Alert severity="error" >请单击红色区域消除冲突</Alert> : <Alert severity="success" >该分析表无冲突</Alert>}
       <table className="my-table">
         <thead>
           <tr>{tableHeaders}</tr>
         </thead>
         <tbody>{tableRows}</tbody>
       </table>
+
     </div>
 
   );
@@ -1081,6 +1145,9 @@ function App() {
   const LR0State = [];
   const tabledata = [];
   const [LRmod, setLRmod] = useState(1);
+  const [rows2, setrows2] = useState([]);
+
+  const [symboltonumer, setSymboltonumer] = useState(new Map());
 
 
   const handleRadioChange = (input) => {
@@ -1117,11 +1184,6 @@ function App() {
   else
     oneStart = false;
 
-
-    //Scanner
-    const [code, setcode] = useState("");
-
-
   return (
     <div className="record-tool">
       <div className="wenfa">
@@ -1143,7 +1205,7 @@ function App() {
         </Box>
         <CustomTabPanel value={value} index={0}>
           <div className="Output-board">
-           <App1 code={code} setcode={setcode}/>
+            <App1 LRrows={rows2} producerset={ProducerSet} symboltonumber={symboltonumer} />
           </div>
         </CustomTabPanel>
         <CustomTabPanel value={value} index={1}>
@@ -1162,7 +1224,7 @@ function App() {
 
             </CustomTabPanel>
             <CustomTabPanel value={value} index={1}>
-              <ShowLR0Table setLRmod={setLRmod} tabledata={tabledata} ProducerSet={ProducerSet} LR0State={LR0State} LRmod={LRmod} />
+              <ShowLR0Table setLRmod={setLRmod} tabledata={tabledata} ProducerSet={ProducerSet} LR0State={LR0State} LRmod={LRmod} rows={rows2} setrows={setrows2} setSymboltonumer={setSymboltonumer} />
             </CustomTabPanel>
           </div>
         </CustomTabPanel>
