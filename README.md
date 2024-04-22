@@ -2,6 +2,18 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Getting Started Onlie
+
+Get started by visiting: www.pjl.xiezaiwangzhe.top:100
+
+### Instruction
+
+#### 1.Import your grammer
+
+#### 2.Set grammar-analyse-table
+
+#### 3.Start analyse your code
+
 ## Available Scripts
 
 In the project directory, you can run:
