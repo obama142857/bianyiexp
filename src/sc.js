@@ -127,7 +127,8 @@ function TokenShower({ signtable, Tokentext, settokentext }) {
 
 
   return (
-    <div className="code-inputer">
+    <div className="code-inputer" >
+      <div style={{ }}>
       <TextField
         id="token shower"
         label="Token"
@@ -136,6 +137,7 @@ function TokenShower({ signtable, Tokentext, settokentext }) {
         value={data}
         readOnly
       />
+      </div>
     </div>
   );
 }

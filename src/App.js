@@ -239,16 +239,16 @@ function StateShower({ LR0State, LRmod }) {
     value.forEach((item) => {
       if (item.word === '') {
         if (LRmod === 3)
-          tempdata.children.push({ id: `I${index}PE${item.expect}`, label: `${item.start}→·,${item.expect}` });
+          tempdata.children.push({ id: `I${index}PS${item.start}E${item.expect}`, label: `${item.start}→·,${item.expect}` });
         else
-          tempdata.children.push({ id: `I${index}P`, label: `${item.start}→·` });
+          tempdata.children.push({ id: `I${index}PCS${item.start}`, label: `${item.start}→·` });
 
       }
       else {
         if (LRmod === 3)
-          tempdata.children.push({ id: `I${index}W${item.word}P${item.pos}E${item.expect}`, label: `${item.start}→${WordtoLetterArray(item.word).slice(0, item.pos).join("")} · ${WordtoLetterArray(item.word).slice(item.pos).join("")},${item.expect}` });
+          tempdata.children.push({ id: `I${index}WS${item.start}${item.word}P${item.pos}E${item.expect}`, label: `${item.start}→${WordtoLetterArray(item.word).slice(0, item.pos).join("")} · ${WordtoLetterArray(item.word).slice(item.pos).join("")},${item.expect}` });
         else
-          tempdata.children.push({ id: `I${index}P${item.word}E${item.pos}`, label: `${item.start}→${WordtoLetterArray(item.word).slice(0, item.pos).join("")} · ${WordtoLetterArray(item.word).slice(item.pos).join("")}` });
+          tempdata.children.push({ id: `I${index}PS${item.start}${item.word}E${item.pos}`, label: `${item.start}→${WordtoLetterArray(item.word).slice(0, item.pos).join("")} · ${WordtoLetterArray(item.word).slice(item.pos).join("")}` });
 
       }
     });
