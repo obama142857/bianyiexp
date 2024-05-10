@@ -128,15 +128,15 @@ function TokenShower({ signtable, Tokentext, settokentext }) {
 
   return (
     <div className="code-inputer" >
-      <div style={{ }}>
-      <TextField
-        id="token shower"
-        label="Token"
-        multiline
-        rows={10}
-        value={data}
-        readOnly
-      />
+      <div style={{}}>
+        <TextField
+          id="token shower"
+          label="Token"
+          multiline
+          rows={10}
+          value={data}
+          readOnly
+        />
       </div>
     </div>
   );
@@ -566,8 +566,7 @@ function GrammarResultShowTable({ grammarresult, producerset }) {
 
 function grammar(LRrows, producerset, symboltonumber, signtable) {
 
-
-  if(signtable.length===0)
+  if (signtable.length === 0)
     return [];
   const result = [];
   //栈state
@@ -582,7 +581,6 @@ function grammar(LRrows, producerset, symboltonumber, signtable) {
   input.push("$");
   let nextinput = 0;
 
-
   //移入到状态STATE
   function shift(state) {
     //记录
@@ -596,7 +594,7 @@ function grammar(LRrows, producerset, symboltonumber, signtable) {
   //语法分析结果,1:shift 2:reduce 3:goto 4:accept
   function searchtable(state, sign) {
     const s = LRrows[state][symboltonumber.get(sign)].text;
-    if (s==='')
+    if (s === '')
       return { action: 4, value: 0 };
     const result2 = { action: 0, value: 0 };
     if (s[0] === 's') {
@@ -617,16 +615,14 @@ function grammar(LRrows, producerset, symboltonumber, signtable) {
     }
     return result2;
   }
-  
-
 
   //规约
   function reduce(val) {
     //记录
     result.push({ stack: stack.map((item) => item.state).join(' '), sign: stack.map((item) => item.sign).join(' '), input: input.slice(nextinput).join(' '), action: 2, val: val });
-    
-    let word="";
-    let start="";
+
+    let word = "";
+    let start = "";
     let index = 0;
     producerset.forEach((value, key) => {
       value.forEach((value2) => {
@@ -638,8 +634,7 @@ function grammar(LRrows, producerset, symboltonumber, signtable) {
       });
     });
 
-    if(word==="ε")
-    {
+    if (word === "ε") {
       stack.push({ state: LRrows[stack[stacksize - 1].state][symboltonumber.get(start)].text, sign: start });
       stacksize++;
       return;
@@ -669,6 +664,234 @@ function grammar(LRrows, producerset, symboltonumber, signtable) {
   }
 }
 
+function semantic(intermediacode,setintermediacode,LRrows, producerset, symboltonumber, signtable) {
+
+  let nextquad=0;
+  setintermediacode(intermediacode=>[]);
+  function gen(code)
+  {
+    setintermediacode(intermediacode=>[...intermediacode,code]);
+    nextquad++;
+  }
+
+  function backpatch(list,quad)
+  {
+
+    list.forEach((item)=>{
+      setintermediacode(intermediacode=>[...intermediacode.slice(0,item),intermediacode[item]+" "+quad,...intermediacode.slice(item+1)]);
+    });
+  }
+
+  function merge(list1,list2)
+  {
+    return list1.concat(list2);
+  }
+
+
+
+  if (signtable.length === 0)
+    return [];
+  const result = [];
+  //全局变量
+  let offset = 0;
+  let subnum = 1;
+  //栈state
+  let stack = [{ state: 0, sign: "$",quad:0,addr:"",truelist:[],falselist:[],nextlist:[],value:""}];
+  let stacksize = 1;
+
+  //输入串
+  const input = [];
+  const inputvalue=[];
+  signtable.forEach((item) => {
+    input.push(item.kind);
+    inputvalue.push(item.value);
+  });
+  input.push("$");
+  let nextinput = 0;
+
+  //移入到状态STATE
+  function shift(state) {
+    //记录
+    result.push({ stack: stack.map((item) => item.state).join(' '), sign: stack.map((item) => item.sign).join(' '), input: input.slice(nextinput).join(' '), action: 1, val: state });
+    //执行
+    stack.push({ state: state, sign: input[nextinput],addr:inputvalue[nextinput]});
+    nextinput++;
+    stacksize++;
+  }
+  //查看分析表
+  //语法分析结果,1:shift 2:reduce 3:goto 4:accept
+  function searchtable(state, sign) {
+    const s = LRrows[state][symboltonumber.get(sign)].text;
+    if (s === '')
+      return { action: 4, value: 0 };
+    const result2 = { action: 0, value: 0 };
+    if (s[0] === 's') {
+      result2.action = 1;
+      result2.value = parseInt(s.substr(1));
+    }
+    else if (s[0] === 'r') {
+      result2.action = 2;
+      result2.value = parseInt(s.substr(1));
+    }
+    else if (s[0] === 'a') {
+      result2.action = 4;
+      result2.value = 0;
+    }
+    else {
+      result2.action = 3;
+      result2.value = parseInt(s.substr(1));
+    }
+    return result2;
+  }
+
+  //规约
+  function reduce(val) {
+    //记录
+    result.push({ stack: stack.map((item) => item.state).join(' '), sign: stack.map((item) => item.sign).join(' '), input: input.slice(nextinput).join(' '), action: 2, val: val });
+
+    //求出规约产生式的start和word
+    let word = "";
+    let start = "";
+    let index = 0;
+    producerset.forEach((value, key) => {
+      value.forEach((value2) => {
+        if (index === val) {
+          start = key;
+          word = value2;
+        }
+        index++;
+      });
+    });
+
+
+    if (word === "ε") {
+      const quad = nextquad;
+      stack.push({ state: LRrows[stack[stacksize - 1].state][symboltonumber.get(start)].text, sign: start, quad: quad,nextlist:[nextquad]});
+      if(start==="N")
+        gen("goto");
+      stacksize++;
+      return;
+    }
+    else {
+      //语义信息
+      let addr="";
+      let nextlist=[];
+      let truelist=[];
+      let falselist=[];
+      if (start === "S" && word === "id=E;") {
+        gen(stack[stacksize - 4].addr + "=" + stack[stacksize - 2].addr);
+      }
+      if (start === "E" && word === "E+T") {
+        addr = "t" + subnum;
+        subnum++;
+        gen(addr + "=" + stack[stacksize - 3].addr + "+" + stack[stacksize - 1].addr);
+      }
+      if (start === "E" && word === "E-T") {
+        addr = "t" + subnum;
+        subnum++;
+        gen(addr + "=" + stack[stacksize - 3].addr + "-" + stack[stacksize - 1].addr);
+      }
+      if (start === "E" && word === "T") {
+        addr = stack[stacksize - 1].addr;
+      }
+      if (start === "T" && word === "T*F") {
+        addr = "t" + subnum;
+        subnum++;
+        gen(addr + "=" + stack[stacksize - 3].addr + "*" + stack[stacksize - 1].addr);
+      }
+      if (start === "T" && word === "T/F") {
+        addr = "t" + subnum;
+        subnum++;
+        gen(addr + "=" + stack[stacksize - 3].addr + "/" + stack[stacksize - 1].addr);
+      }
+      if (start === "T" && word === "F") {
+        addr = stack[stacksize - 1].addr;
+      }
+      if (start === "F" && word === "(E)") {
+        addr = stack[stacksize - 2].addr;
+      }
+      if (start === "F" && word === "id") {
+        addr = stack[stacksize - 1].addr;
+      }
+      if (start === "F" && word === "digits") {
+        addr = stack[stacksize - 1].addr;
+      }
+      if (start === "S" && word === "if(C)MS") {
+        backpatch(stack[stacksize - 4].truelist, stack[stacksize - 2].quad);
+        nextlist = merge(stack[stacksize - 4].falselist, stack[stacksize - 1].nextlist);
+      }
+      if (start === "S" && word === "if(C)MSNelseMS") {
+        backpatch(stack[stacksize - 8].truelist, stack[stacksize - 6].quad);
+        backpatch(stack[stacksize - 8].falselist, stack[stacksize - 2].quad);
+        nextlist = merge(merge(stack[stacksize-1].nextlist,stack[stacksize-5].nextlist),stack[stacksize-4].nextlist);
+      }
+      if(start === "S" && word === "SMS"){
+        backpatch(stack[stacksize - 3].nextlist, stack[stacksize - 2].quad);
+        nextlist = merge(stack[stacksize-1].nextlist,[]);
+      }
+      if(start ==="P" && word ==="DS"){
+        backpatch(stack[stacksize - 1].nextlist, nextquad);
+      }
+      if (start === "C" && word === "E<E") {
+        truelist.push(nextquad);
+        falselist.push(nextquad+1);
+        gen("if " + stack[stacksize - 3].addr + "<" + stack[stacksize - 1].addr + " goto");
+        gen("goto");
+      }
+      if (start === "C" && word === "E==E") {
+        truelist = [nextquad,];
+        falselist = [nextquad + 1,];
+        gen("if " + stack[stacksize - 3].addr + "==" + stack[stacksize - 1].addr + " goto");
+        gen("goto");
+      }
+      if (start === "C" && word === "E>E") {
+        truelist = [nextquad,];
+        falselist = [nextquad + 1,];
+        gen("if " + stack[stacksize - 3].addr + ">" + stack[stacksize - 1].addr + " goto");
+        gen("goto");
+      }
+
+
+      const wordArray = WordtoLetterArray(word);
+      stack = stack.slice(0, stacksize - wordArray.length);
+      stacksize = stack.length;
+      stack.push({ state: LRrows[stack[stacksize - 1].state][symboltonumber.get(start)].text, sign: start,addr:addr,nextlist:nextlist,truelist:truelist,falselist:falselist}); 
+      stacksize++;
+    }
+
+  }
+
+  while (true) {
+    const action = searchtable(stack[stacksize - 1].state, input[nextinput]);
+    if (action.action === 1) {
+      shift(action.value);
+    }
+    else if (action.action === 2) {
+      reduce(action.value);
+    }
+
+    else if (action.action === 4) {
+      result.push({ stack: stack.map((item) => item.state).join(' '), sign: stack.map((item) => item.sign).join(' '), input: input.slice(nextinput).join(' '), action: 4, val: 0 });
+      return result;
+    }
+
+  }
+
+}
+
+function IntermediacodeCodeShower({intermediacode})
+{
+  return (
+   <div>
+      {intermediacode.map((item,index) => (
+        <div style={{ color: "#0099ff" ,fontSize: '28px'}}>{index}: {item}</div>
+      ))}
+
+   </div>
+  );
+}
+
+
 
 export function App1({ LRrows, producerset, symboltonumber }) {
   const [code, setcode] = useState("");
@@ -678,6 +901,10 @@ export function App1({ LRrows, producerset, symboltonumber }) {
   const [stringtable, setstringtable] = useState([]);
   const [grammarresult, setgrammarresult] = useState([{ stack: "0", sign: "$", input: "id*id", action: 1, val: 5 }, { stack: "0", sign: "$id", input: "*id", action: 2, val: 1 }]);//语法分析结果,1:shift 2:reduce 3:goto 4:accept
   const [open, setOpen] = React.useState(false);
+
+  const [intermediacode, setintermediacode] = useState([]);
+
+  
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -730,6 +957,13 @@ export function App1({ LRrows, producerset, symboltonumber }) {
         <GrammarResultShowTable grammarresult={grammarresult} producerset={producerset} />
         <button className="button1" onClick={() => grammarclick()}>
           语法分析
+        </button>
+      </div>
+      <div className='myboard'>
+        <h1>语义分析</h1>
+        <IntermediacodeCodeShower intermediacode={intermediacode}/>
+        <button className="button1" onClick={() => semantic(intermediacode,setintermediacode,LRrows, producerset, symboltonumber, signtable)}>
+          语义分析
         </button>
       </div>
     </div>

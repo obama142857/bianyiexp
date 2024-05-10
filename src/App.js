@@ -1129,6 +1129,55 @@ function CaculateProducerSet(rows, ProducerSet, startProducer) {
   });
 }
 
+function YuyiShower(){
+
+  const text=[
+    "P→D {offset=0} S",
+    "D→Lid; {enter(id.lexeme,T.type,offset); offset=offset+T.width} D",
+    "D→ε",
+    "L→int {T.type='int'; T.width=4}",
+    "L→float {T.type='float'; T.width=8}",
+    "S→id=E; {p=lookup(id.lexeme); if p==nil then error; gen(p'='E.addr)}",
+    "S→if(E)MS1 {backpatch(E.truelist,M.quad); S.nextlist=merge(B.falselist,S1.nextlist);}",
+    "S→if(E)M1S1NelseM2S2 {backpatch(B.truelist,M1.quad); backpatch(B.falselist,M2.quad); S.nextlist=merge(S1.nextlist,N.nextlist,S2.nextlist);}",
+    "M→ε {M.quad=nextquad;}",
+    "S→S1MS2 {backpatch(S1.nextlist,M.quad); S.nextlist=S2.nextlist}",
+    "N→ε {N.nextlist=makelist(nextquad); gen('goto_');}",
+    "C→E1<E2 C.truelist=makelist(nextquad); C.falselist=makelist(nextquad+1); gen('if E1.addr<'E2.addr'goto_'); gen('goto_');}",
+    "C→E1>E2 C.truelist=makelist(nextquad); C.falselist=makelist(nextquad+1); gen('if E1.addr>'E2.addr'goto_'); gen('goto_');}",
+    "C→E1==E2 C.truelist=makelist(nextquad); C.falselist=makelist(nextquad+1); gen('if E1.addr=='E2.addr'goto_'); gen('goto_');}",
+    "E→E1+T {E.addr=newtemp(); gen(E.addr'='E1.addr+'+'+T.addr)}",
+    "E→E1-T {E.addr=newtemp(); gen(E.addr'='E1.addr+'-'+T.addr)}",
+    "E→T {E.addr=T.addr}",
+    "T→T1*F {T.addr=newtemp(); gen(T.addr'='T1.addr+'*'+F.addr)}",
+    "T→T1/F {T.addr=newtemp(); gen(T.addr'='T1.addr+'/'+F.addr)}",
+    "T→F {T.addr=F.addr}",
+    "F→(E) {F.addr=E.addr}",
+    "F→id {F.addr=lookup(id.lexeme).addr; if F.addr==nil then error}",
+    "F→digits {F.addr=digits.lexeme}",
+  ];
+
+  const getRandomColor = () => {
+    const colors = [
+                    "#6666FF"];
+
+    return colors[Math.floor(Math.random() * colors.length)];
+  };
+
+  return (
+    <div className="text-container">
+      <h2>语义信息</h2>
+      属性: nextlist,truelist,falselist,quad,addr,type,width
+      <ul>
+        {text.map((item, index) => (
+            <li key={index} style={{ color: getRandomColor() ,fontSize: '28px'}}>{item}</li>
+        ))}
+      </ul>
+    </div>
+  );
+  
+}
+
 
 
 
@@ -1146,9 +1195,8 @@ function App() {
   const tabledata = [];
   const [LRmod, setLRmod] = useState(1);
   const [rows2, setrows2] = useState([]);
-
   const [symboltonumer, setSymboltonumer] = useState(new Map());
-
+ 
 
   const handleRadioChange = (input) => {
     setSelectedKey(parseInt(input));
@@ -1200,7 +1248,8 @@ function App() {
           <Tabs value={value} textColor="secondary" onChange={handleChange} aria-label="basic tabs example" centered>
             <Tab label="简易编译器" {...a11yProps(0)} />
             <Tab label="LR计算器" {...a11yProps(1)} />
-            <Tab label="导入文法" {...a11yProps(2)} />
+            <Tab label="语义信息查看" {...a11yProps(2)} />
+            <Tab label="导入文法" {...a11yProps(3)} />
           </Tabs>
         </Box>
         <CustomTabPanel value={value} index={0}>
@@ -1229,6 +1278,11 @@ function App() {
           </div>
         </CustomTabPanel>
         <CustomTabPanel value={value} index={2}>
+          <YuyiShower />
+          <ClusterShower title="First" myMap={FirstCluster} />
+          <ClusterShower title="Follow" myMap={FollowCluster} />
+        </CustomTabPanel>
+        <CustomTabPanel value={value} index={3}>
           <TemporaryDrawer rows={rows} setRows={setRows} />
         </CustomTabPanel>
 
