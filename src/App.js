@@ -1132,17 +1132,17 @@ function CaculateProducerSet(rows, ProducerSet, startProducer) {
 function YuyiShower(){
 
   const text=[
-    "P→D {offset=0} S",
+    "P→DS {backpatch(D.nextlist,nextquad)};",
     "D→Lid; {enter(id.lexeme,T.type,offset); offset=offset+T.width} D",
     "D→ε",
+    "M→ε {M.quad=nextquad;}",
+    "N→ε {N.nextlist=makelist(nextquad); gen('goto_');}",
     "L→int {T.type='int'; T.width=4}",
     "L→float {T.type='float'; T.width=8}",
     "S→id=E; {p=lookup(id.lexeme); if p==nil then error; gen(p'='E.addr)}",
     "S→if(E)MS1 {backpatch(E.truelist,M.quad); S.nextlist=merge(B.falselist,S1.nextlist);}",
     "S→if(E)M1S1NelseM2S2 {backpatch(B.truelist,M1.quad); backpatch(B.falselist,M2.quad); S.nextlist=merge(S1.nextlist,N.nextlist,S2.nextlist);}",
-    "M→ε {M.quad=nextquad;}",
     "S→S1MS2 {backpatch(S1.nextlist,M.quad); S.nextlist=S2.nextlist}",
-    "N→ε {N.nextlist=makelist(nextquad); gen('goto_');}",
     "C→E1<E2 C.truelist=makelist(nextquad); C.falselist=makelist(nextquad+1); gen('if E1.addr<'E2.addr'goto_'); gen('goto_');}",
     "C→E1>E2 C.truelist=makelist(nextquad); C.falselist=makelist(nextquad+1); gen('if E1.addr>'E2.addr'goto_'); gen('goto_');}",
     "C→E1==E2 C.truelist=makelist(nextquad); C.falselist=makelist(nextquad+1); gen('if E1.addr=='E2.addr'goto_'); gen('goto_');}",
