@@ -157,7 +157,7 @@ function GraphShower({ LR0State, LRmod, LRedges }) {
 
 function TemporaryDrawer({ rows, setRows }) {
 
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState('P\'->P\nP->DS\nD->Lid;D|ε\nL->int|float\nM->ε\nN->ε\nS->id=E;|if(C)MS|if(C)MSNelseMS|while(MC)MS|SMS\nC->E>E|E<E|E==E\nE->E+T|E-T|T\nT->F|T*F|T/F\nF->(E)|id|digits');
   const handleInputChange = (event) => {
     setInputValue(event.target.value);
   };
@@ -1142,6 +1142,7 @@ function YuyiShower(){
     "S→id=E; {p=lookup(id.lexeme); if p==nil then error; gen(p'='E.addr)}",
     "S→if(E)MS1 {backpatch(E.truelist,M.quad); S.nextlist=merge(B.falselist,S1.nextlist);}",
     "S→if(E)M1S1NelseM2S2 {backpatch(B.truelist,M1.quad); backpatch(B.falselist,M2.quad); S.nextlist=merge(S1.nextlist,N.nextlist,S2.nextlist);}",
+    "S→while(MC)MS1 {backpatch(S1.nextlist,M1.quad); backpatch(C.truelist,M2.quad); S.nextlist=B.falselist; gen('goto 'M1.quad);}",
     "S→S1MS2 {backpatch(S1.nextlist,M.quad); S.nextlist=S2.nextlist}",
     "C→E1<E2 C.truelist=makelist(nextquad); C.falselist=makelist(nextquad+1); gen('if E1.addr<'E2.addr'goto_'); gen('goto_');}",
     "C→E1>E2 C.truelist=makelist(nextquad); C.falselist=makelist(nextquad+1); gen('if E1.addr>'E2.addr'goto_'); gen('goto_');}",
@@ -1167,7 +1168,6 @@ function YuyiShower(){
   return (
     <div className="text-container">
       <h2>语义信息</h2>
-      属性: nextlist,truelist,falselist,quad,addr,type,width
       <ul>
         {text.map((item, index) => (
             <li key={index} style={{ color: getRandomColor() ,fontSize: '28px'}}>{item}</li>
@@ -1270,10 +1270,11 @@ function App() {
               </ButtonGroup>
 
               {oneStart ? ifdraw ? <GraphShower LR0State={LR0State} LRedges={LRedges} LRmod={LRmod} /> : <StateShower LR0State={LR0State} LRmod={LRmod} /> : <Alert severity="error">请使用增广文法</Alert>}
-
+              
             </CustomTabPanel>
             <CustomTabPanel value={value} index={1}>
               <ShowLR0Table setLRmod={setLRmod} tabledata={tabledata} ProducerSet={ProducerSet} LR0State={LR0State} LRmod={LRmod} rows={rows2} setrows={setrows2} setSymboltonumer={setSymboltonumer} />
+              
             </CustomTabPanel>
           </div>
         </CustomTabPanel>

@@ -850,6 +850,12 @@ function semantic(intermediacode,setintermediacode,LRrows, producerset, symbolto
         gen("if " + stack[stacksize - 3].addr + ">" + stack[stacksize - 1].addr + " goto");
         gen("goto");
       }
+      if(start ==="S"&&word==="while(MC)MS"){
+        backpatch(stack[stacksize - 1].nextlist, stack[stacksize - 5].quad);
+        backpatch(stack[stacksize - 4].truelist, stack[stacksize - 2].quad);
+        nextlist = stack[stacksize-4].falselist;
+        gen("goto "+stack[stacksize-5].quad);
+      }
 
 
       const wordArray = WordtoLetterArray(word);
@@ -924,6 +930,11 @@ export function App1({ LRrows, producerset, symboltonumber }) {
     download(tokentext);
   }
   function grammarclick() {
+    if(LRrows.length===0)
+      {
+        alert("请先在LR计算器中计算分析表");
+        return;
+      }
     setgrammarresult(grammar(LRrows, producerset, symboltonumber, signtable));
   }
 
