@@ -4,7 +4,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## Getting Started Onlie
 
-Get started by visiting: https://www.pjl.xiezaiwangzhe.top
+Get started by visiting: https://www.panjiale.sbs
 
 ### Instruction
 
